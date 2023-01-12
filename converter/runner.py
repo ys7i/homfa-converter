@@ -1,7 +1,7 @@
 from collections import deque
 from automata import Automata3
 from logging import getLogger
-from automata import Automata
+from automata import NFAutomata, DFAutomata
 import spot
 from typing import List
 
@@ -13,22 +13,25 @@ def convert_formula(formula, is_reversed=False) -> Automata3:
     ff = spot.formula(f"!({formula})")
     assert tf.is_ltl_formula() and ff.is_ltl_formula()
 
-    tf_aut = Automata(tf)
-    ff_aut = Automata(ff)
+    tf_aut = NFAutomata(tf)
+    ff_aut = NFAutomata(ff)
+
     tf_aut.swap_acc_rej()
     ff_aut.swap_acc_rej()
 
+    tfd_aut = tf_aut.create_dfa()
+    ffd_aut = ff_aut.create_dfa()
     if is_reversed:
-        tf_aut.reverse()
-        ff_aut.reverse()
+        tfd_aut = tfd_aut.reverse()
+        ffd_aut = ffd_aut.reverse()
         logger.info("reversed")
 
-    tf_aut, ff_aut = ff_aut, tf_aut
-    aut = product_aut(tf_aut, ff_aut)
+    tfd_aut, ffd_aut = ffd_aut, tfd_aut
+    aut = product_aut(tfd_aut, ffd_aut)
     return aut
 
 
-def product_aut(tf, ff):
+def product_aut(tf: DFAutomata, ff: DFAutomata):
     queue = deque()
     state_dict = {}
 
