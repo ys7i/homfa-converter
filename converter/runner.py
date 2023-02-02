@@ -1,11 +1,11 @@
 from collections import deque
 from automata import Automata3
 from logging import getLogger
-from automata import NFAutomata, DFAutomata
+from nba import NBAutomata
 import spot
 from typing import List
 
-
+# LTL式をspotで読み込んで3値オートマトンに変換
 def convert_formula(formula, is_reversed=False) -> Automata3:
     logger = getLogger(__name__)
 
@@ -13,14 +13,15 @@ def convert_formula(formula, is_reversed=False) -> Automata3:
     ff = spot.formula(f"!({formula})")
     assert tf.is_ltl_formula() and ff.is_ltl_formula()
 
-    tf_aut = NFAutomata(tf)
-    ff_aut = NFAutomata(ff)
+    tf_aut = NBAutomata(tf)
+    ff_aut = NBAutomata(ff)
 
     tf_aut.swap_acc_rej()
     ff_aut.swap_acc_rej()
 
     tfd_aut = tf_aut.create_dfa()
     ffd_aut = ff_aut.create_dfa()
+
     if is_reversed:
         tfd_aut = tfd_aut.reverse()
         ffd_aut = ffd_aut.reverse()
@@ -94,6 +95,9 @@ def convert_auto_to_str(aut: Automata3) -> List[str]:
 
 
 def output_config(aut_lines):
+    logger = getLogger(__name__)
+    logger.info("🎉output config🎉")
     with open("./output_files/config.spec", mode="w") as f:
         for line in aut_lines:
             f.write(line + "\n")
+            logger.info(line)
