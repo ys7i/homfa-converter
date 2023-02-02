@@ -9,8 +9,8 @@ $ conda env create –file condaenv.yaml
 $ conda activate homfa-converter
 ```
 
-- 実行例
-  - 通常
+## 実行例
+- 通常
 ```bash
 $ python3 -m converter "p & F(\!p & Fp)" 
 ```
