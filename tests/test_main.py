@@ -2,7 +2,7 @@ import unittest
 from dataclasses import dataclass
 from typing import List
 import re
-from converter import runner
+from converter.manager import manager
 from enum import Enum
 
 
@@ -136,8 +136,8 @@ TEST_CASES = [
 class TestMySort(unittest.TestCase):
     def test_forward(self):
         for case in TEST_CASES:
-            aut = runner.convert_formula(case.formula, False)
-            aut_lines = runner.convert_auto_to_str(aut)
+            aut = manager.convert_formula(case.formula, False)
+            aut_lines = manager.convert_auto_to_str(aut)
             aut_for_test = AutomataForTest(aut_lines)
             for pair in case.pair:
                 am_value = aut_for_test.run(pair[0])
@@ -145,8 +145,8 @@ class TestMySort(unittest.TestCase):
 
     def test_reverse(self):
         for case in TEST_CASES:
-            aut = runner.convert_formula(case.formula, True)
-            aut_lines = runner.convert_auto_to_str(aut)
+            aut = manager.convert_formula(case.formula, True)
+            aut_lines = manager.convert_auto_to_str(aut)
             aut_for_test = AutomataForTest(aut_lines)
             for pair in case.pair:
                 am_value = aut_for_test.run(reversed(pair[0]))

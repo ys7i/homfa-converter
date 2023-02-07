@@ -1,9 +1,10 @@
 import re
 from typing import List
+from converter.hoa_parser.dto import IntegratedAutomata
 
 # HOA形式のオートーマトン設定をパースする
 
-# HOA形式のheader
+# HOA形式の例
 # HOA: v1
 # States: 4
 # Start: 3
@@ -12,8 +13,7 @@ from typing import List
 # Acceptance: 1 Inf(0)
 # properties: trans-labels explicit-labels state-acc deterministic
 # properties: stutter-invariant terminal
-
-# HOA形式のbody
+# --BODY--
 # State: 0 {0}
 # [t] 0
 # State: 1
@@ -28,12 +28,20 @@ from typing import List
 # [0&!1&!2] 1
 # [0&1] 2
 
-# 知りたい情報(ap, acceptance condition, 初期状態, relation)
-def parse_hoa(header, body):
+
+def parse_hoa(lines) -> IntegratedAutomata:
+    """return
+    atomic propositions, 受理条件, 初期状態, relation(state, transition)
+    """
+    body_index = lines.index("--BODY--")
+    header = lines[:body_index]
+    body = lines[body_index + 1 : -1]
     init_state = _find_initial_state(header[2])
     aps = _find_atomic_propositions(header[3])
     acc = _find_acc_condition(header[5])
-    print(init_state, aps, acc)
+    config = _find_config(body)
+    i_aut = IntegratedAutomata(initial=init_state, aps=aps, acc=acc, config=config)
+    return i_aut
 
 
 # parseする文字列の例
@@ -69,10 +77,23 @@ def _find_initial_state(line: str) -> int:
     return int(init_match.group(1))
 
 
-# stateとtransitionを特定する
-def _find_state_and_transition(body: List[str]) -> int:
-    init_regex = r"Start: (\d+)"
-    init_match = re.search(init_regex, line)
-    if init_match is None:
-        raise Exception("Initial state not found")
-    return int(init_match.group(1))
+def _find_config(body: List[str]) -> List[dict[str, int]]:
+    """returns
+    ex) [{'t': 0}, {'!2': 1}, {'!1&!2': 1, '1': 2}, {'!0': 0, '0&!1&!2': 1, '0&1': 2}]
+    """
+    state_regex = r"State: (\d+)"
+    trans_regex = r"\[([^\]]+)\] (\d+)"
+
+    state_rows = list(filter(lambda x: re.search(state_regex, x) is not None, body))
+    now_state = 0
+    config = [{} for _ in range(len(state_rows))]
+    for line in body:
+        if line.startswith("State:"):
+            st_match = re.search(state_regex, line)
+            assert st_match is not None
+            now_state = int(st_match.group(1))
+        else:
+            tr_match = re.search(trans_regex, line)
+            assert tr_match is not None
+            config[now_state][tr_match.group(1)] = int(tr_match.group(2))
+    return config
