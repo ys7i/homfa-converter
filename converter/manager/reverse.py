@@ -1,10 +1,16 @@
 from converter.automata.dfa import DFAutomata
 from converter.automata.nfa import NFAutomata
-from nfa_to_dfa import get_dfa
+from converter.manager import nfa_to_dfa
 
 
 def reverse_dfa_to_nfa(dfa: DFAutomata) -> NFAutomata:
-    # self.reject = None
+    if len(dfa.acc) == 0:
+        return NFAutomata(
+            initial=[0],
+            config=[{"zero": [0], "one": [0]}],
+            acc=[],
+            rej=[0],
+        )
     initials = sorted(dfa.acc)
     acc_state = [dfa.initial]
     nfa_config = [{"zero": [], "one": []} for _ in dfa.config]
@@ -30,4 +36,4 @@ def reverse_dfa_to_nfa(dfa: DFAutomata) -> NFAutomata:
 
 
 def convert_reversed_nfa_to_dfa(nfa: NFAutomata) -> DFAutomata:
-    return get_dfa(nfa, False)
+    return nfa_to_dfa.get_dfa(nfa, False)

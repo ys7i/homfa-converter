@@ -16,8 +16,8 @@ def convert_formula(formula, is_reversed=False) -> Automata3:
     ff_nba = convert_formula_to_nba(f"!({formula})")
     logger.info("succeeded🎉 from LTL formula to NBA")
 
-    tf_nfa = convert_nba_to_nfa(tf_nba)
-    ff_nfa = convert_nba_to_nfa(ff_nba)
+    ff_nfa = convert_nba_to_nfa(tf_nba)
+    tf_nfa = convert_nba_to_nfa(ff_nba)
     logger.info("succeeded🎉 from NFA to NBA")
 
     tf_dfa = convert_nfa_to_dfa(tf_nfa)

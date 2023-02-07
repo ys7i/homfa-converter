@@ -134,19 +134,19 @@ TEST_CASES = [
 
 
 class TestMySort(unittest.TestCase):
-    def test_forward(self):
+    def test_forward_solo_ap(self):
         for case in TEST_CASES:
             aut = manager.convert_formula(case.formula, False)
-            aut_lines = manager.convert_auto_to_str(aut)
+            aut_lines = manager.convert_aut_to_str(aut)
             aut_for_test = AutomataForTest(aut_lines)
             for pair in case.pair:
                 am_value = aut_for_test.run(pair[0])
                 self.assertEqual(am_value, pair[1])
 
-    def test_reverse(self):
+    def test_reverse_solo_ap(self):
         for case in TEST_CASES:
             aut = manager.convert_formula(case.formula, True)
-            aut_lines = manager.convert_auto_to_str(aut)
+            aut_lines = manager.convert_aut_to_str(aut)
             aut_for_test = AutomataForTest(aut_lines)
             for pair in case.pair:
                 am_value = aut_for_test.run(reversed(pair[0]))

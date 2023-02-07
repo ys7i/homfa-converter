@@ -54,4 +54,4 @@ def product_aut(tf: DFAutomata, ff: DFAutomata):
             "one": state_map[state_dict[str]["one"]],
         }
 
-    return Automata3(initial=initial, config=aut3_config, top=[], bottom=[])
+    return Automata3(initial=initial, config=aut3_config, top=top, bottom=bottom)
