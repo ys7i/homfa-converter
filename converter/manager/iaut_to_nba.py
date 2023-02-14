@@ -40,7 +40,6 @@ def find_aps_combination(aps_len: int, target: str) -> List[Condition]:
             combination[ap_index] = Condition.ZERO
         else:
             combination[ap_index] = Condition.ONE
-
     return combination
 
 
@@ -51,6 +50,7 @@ def construct_nba_from_iaut(i_aut: IntegratedAutomata) -> NBAutomata:
         for key in trans_keys:
             dst = transition[key]
             # true transition
+            # 複数のapの組み合わせを1つのapで表すように変換
             if key == "t":
                 pre_index = i
                 for _ in range(len(i_aut.aps) - 1):
@@ -70,13 +70,13 @@ def construct_nba_from_iaut(i_aut: IntegratedAutomata) -> NBAutomata:
                     cur_index = len(nba_config) - 1
                     if condition != Condition.ZERO:
                         nba_config[pre_index]["one"].append(cur_index)
-                    elif condition != Condition.ONE:
+                    if condition != Condition.ONE:
                         nba_config[pre_index]["zero"].append(cur_index)
                     pre_index = cur_index
                 condition = conditions[-1]
                 if condition != Condition.ZERO:
                     nba_config[pre_index]["one"].append(dst)
-                elif condition != Condition.ONE:
+                if condition != Condition.ONE:
                     nba_config[pre_index]["zero"].append(dst)
     # reject stateが必要であれば追加
     rej_state = -1

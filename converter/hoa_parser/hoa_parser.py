@@ -38,7 +38,7 @@ def parse_hoa(lines) -> IntegratedAutomata:
     body = lines[body_index + 1 : -1]
     init_state = _find_initial_state(header[2])
     aps = _find_atomic_propositions(header[3])
-    acc = _find_acc_condition(header[5])
+    acc = _find_acc_condition(header[5], body)
     config = _find_config(body)
     i_aut = IntegratedAutomata(initial=init_state, aps=aps, acc=acc, config=config)
     return i_aut
@@ -58,14 +58,23 @@ def _find_atomic_propositions(line: str) -> List[str]:
 
 # parseする文字列の例
 # Acceptance: 1 Inf(0)
-def _find_acc_condition(line: str) -> List[int]:
+def _find_acc_condition(header_line: str, body: List[str]) -> List[int]:
     acc_regex = r"Acceptance: (\d+) (?:Inf\((\d+)\))+"
-    acc_match = re.search(acc_regex, line)
+    acc_match = re.search(acc_regex, header_line)
     if acc_match is None:
         raise Exception("acc-name not found")
     acc_num_str, *rest = acc_match.groups()
     assert int(acc_num_str) == len(rest)
-    return [int(str) for str in rest]
+    if len(rest) != 1:
+        raise Exception("found multiple acceptance conditions. This is not supported.😱")
+
+    acc_state_list = []
+    acc_state_regex = r"State: (\d+) \{{{}\}}".format(rest[0])
+    for line in body:
+        acc_match = re.search(acc_state_regex, line)
+        if acc_match is not None:
+            acc_state_list.append(int(acc_match.group(1)))
+    return acc_state_list
 
 
 # 初期状態を特定する
@@ -95,5 +104,12 @@ def _find_config(body: List[str]) -> List[dict[str, int]]:
         else:
             tr_match = re.search(trans_regex, line)
             assert tr_match is not None
-            config[now_state][tr_match.group(1)] = int(tr_match.group(2))
+            # '1 | !2'等の場合(orの場合)に対応
+            conditions = (
+                tr_match.group(1).split("|")
+                if "|" in tr_match.group(1)
+                else [tr_match.group(1)]
+            )
+            for condition in conditions:
+                config[now_state][condition] = int(tr_match.group(2))
     return config

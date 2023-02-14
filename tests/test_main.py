@@ -1,21 +1,8 @@
 import unittest
-from dataclasses import dataclass
 from typing import List
 import re
 from converter.manager import manager
-from enum import Enum
-
-
-class AMValue(Enum):
-    TOP = 0
-    BOTTOM = 1
-    NONE = 3
-
-
-@dataclass
-class TestCase:
-    formula: str
-    pair: List[tuple[List[bool], AMValue]]
+from tests.test_cases import AMValue, TEST_CASES
 
 
 class AutomataForTest:
@@ -71,70 +58,8 @@ class AutomataForTest:
             return AMValue.NONE
 
 
-TEST_CASES = [
-    TestCase(
-        formula="p & F(!p & Fp)",
-        pair=[
-            ([True], AMValue.NONE),
-            ([True, False], AMValue.NONE),
-            ([True, True], AMValue.NONE),
-            ([True, True, True], AMValue.NONE),
-            ([True, True, False], AMValue.NONE),
-            ([True, True, False, True], AMValue.TOP),
-            ([True, True, False, False], AMValue.NONE),
-            ([True, True, False, False, False], AMValue.NONE),
-            ([True, True, False, False, True], AMValue.TOP),
-            ([False], AMValue.BOTTOM),
-        ],
-    ),
-    TestCase(
-        formula="(!p W 0) xor Xp",
-        pair=[
-            ([True], AMValue.NONE),
-            ([True, False], AMValue.BOTTOM),
-            ([True, True], AMValue.TOP),
-            ([False], AMValue.NONE),
-            ([False, True], AMValue.TOP),
-            ([False, False], AMValue.NONE),
-            ([False, False, False], AMValue.NONE),
-            ([False, False, False, False], AMValue.NONE),
-        ],
-    ),
-    TestCase(
-        formula="(p U !p) M F(!Fp xor Gp)",
-        pair=[
-            ([True], AMValue.NONE),
-            ([True, False], AMValue.NONE),
-            ([True, False, True], AMValue.NONE),
-            ([True, False, False], AMValue.NONE),
-            ([True, True, False], AMValue.NONE),
-            ([False], AMValue.NONE),
-            ([False, True], AMValue.NONE),
-            ([False, True, False], AMValue.NONE),
-            ([False, True, True], AMValue.NONE),
-            ([False, False, True], AMValue.NONE),
-        ],
-    ),
-    TestCase(
-        formula="XFp -> X(((p xor X(0)) W 0) & ((p & Gp) <-> X(p U p)))",
-        pair=[
-            ([True], AMValue.NONE),
-            ([True, False], AMValue.NONE),
-            ([True, False, True], AMValue.BOTTOM),
-            ([True, False, False], AMValue.NONE),
-            ([True, True, False], AMValue.BOTTOM),
-            ([False], AMValue.NONE),
-            ([False, True], AMValue.NONE),
-            ([False, True, False], AMValue.BOTTOM),
-            ([False, True, True], AMValue.NONE),
-            ([False, False, True], AMValue.BOTTOM),
-        ],
-    ),
-]
-
-
-class TestMySort(unittest.TestCase):
-    def test_forward_solo_ap(self):
+class TestExecutor(unittest.TestCase):
+    def test_forward(self):
         for case in TEST_CASES:
             aut = manager.convert_formula(case.formula, False)
             aut_lines = manager.convert_aut_to_str(aut)
@@ -143,7 +68,7 @@ class TestMySort(unittest.TestCase):
                 am_value = aut_for_test.run(pair[0])
                 self.assertEqual(am_value, pair[1])
 
-    def test_reverse_solo_ap(self):
+    def test_reverse(self):
         for case in TEST_CASES:
             aut = manager.convert_formula(case.formula, True)
             aut_lines = manager.convert_aut_to_str(aut)
