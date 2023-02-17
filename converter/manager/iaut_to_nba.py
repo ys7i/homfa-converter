@@ -2,6 +2,7 @@ from enum import Enum
 import numpy as np
 from typing import List
 import spot
+import re
 
 from converter.hoa_parser.dto import IntegratedAutomata
 from hoa_parser.hoa_parser import parse_hoa
@@ -30,6 +31,7 @@ def find_aps_combination(aps_len: int, target: str) -> List[Condition]:
         :param str target: string which represents the combination of aps ex) "0&!1"
     :return: the combination of aps ex) [ONE, ZERO, BOTH]
     """
+    target = re.sub(r"[\s\t]+", "", target)
     if target == "t":
         return [Condition.BOTH for _ in range(aps_len)]
     combination = [Condition.BOTH for _ in range(aps_len)]

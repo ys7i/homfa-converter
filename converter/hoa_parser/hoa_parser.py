@@ -1,6 +1,9 @@
 import re
 from typing import List
 from converter.hoa_parser.dto import IntegratedAutomata
+from converter.hoa_parser.alphabet.alphabet import (
+    convert_num_to_alp,
+)
 
 # HOA形式のオートーマトン設定をパースする
 
@@ -39,8 +42,10 @@ def parse_hoa(lines) -> IntegratedAutomata:
     init_state = _find_initial_state(header[2])
     aps = _find_atomic_propositions(header[3])
     acc = _find_acc_condition(header[5], body)
-    config = _find_config(body)
-    i_aut = IntegratedAutomata(initial=init_state, aps=aps, acc=acc, config=config)
+    config = _find_config(body, aps)
+    i_aut = IntegratedAutomata(
+        initial=init_state, aps=sorted(aps), acc=acc, config=config
+    )
     return i_aut
 
 
@@ -86,7 +91,7 @@ def _find_initial_state(line: str) -> int:
     return int(init_match.group(1))
 
 
-def _find_config(body: List[str]) -> List[dict[str, int]]:
+def _find_config(body: List[str], aps: List[str]) -> List[dict[str, int]]:
     """returns
     ex) [{'t': 0}, {'!2': 1}, {'!1&!2': 1, '1': 2}, {'!0': 0, '0&!1&!2': 1, '0&1': 2}]
     """
@@ -104,12 +109,37 @@ def _find_config(body: List[str]) -> List[dict[str, int]]:
         else:
             tr_match = re.search(trans_regex, line)
             assert tr_match is not None
+            condition_line = _relabel_line(tr_match.group(1), aps)
             # '1 | !2'等の場合(orの場合)に対応
             conditions = (
-                tr_match.group(1).split("|")
-                if "|" in tr_match.group(1)
-                else [tr_match.group(1)]
+                condition_line.split("|") if "|" in condition_line else [condition_line]
             )
             for condition in conditions:
                 config[now_state][condition] = int(tr_match.group(2))
     return config
+
+
+def _relabel_line(line: str, aps: List[str]) -> str:
+    """
+    atomic propositionがp0, p1, p2の場合でもp1, p0, p2等の順番で0, 1, 2が割り振られる場合があるため、
+    aps.sort()の順に0, 1, 2を振り直す
+    line内の数字をアルファベットに変換し、対応する数字に戻す
+    ex) aps = ['p1', 'p0', 'p2'], line="0&1|2"
+    -> line="a&b|c"
+    -> line="1&0|2"
+    """
+    if line == "t":
+        return "t"
+    bind_dict = {}
+    for i, ap in enumerate(aps):
+        alp = convert_num_to_alp(i)
+        assert alp is not None
+        # atomic propositionの数が11を超えると誤変換される
+        line = line.replace(f"{i}", alp)
+        bind_dict[ap] = alp
+
+    sorted_aps = sorted(aps)
+    for i, ap in enumerate(sorted_aps):
+        alp = bind_dict[ap]
+        line = line.replace(alp, str(i))
+    return line

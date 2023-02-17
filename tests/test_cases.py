@@ -99,4 +99,10 @@ TEST_CASES = [
             ([False, False, True], AMValue.BOTTOM),
         ],
     ),
+    TestCase(
+        formula="!(p0 & F(!p1 & Fp2)) | !(p1 & F(!p0))",
+        pair=[
+            ([False, True, True], AMValue.TOP),
+        ],
+    ),
 ]

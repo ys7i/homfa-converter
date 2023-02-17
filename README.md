@@ -2,7 +2,7 @@
 - anacondaをinstallしてcondaコマンドを使えるように
 - conda環境を読み込む
 ```bash
-$ conda env create –file condaenv.yaml
+$ conda env create –-file condaenv.yaml --name homfa-converter
 ```
 - activate
 ```bash
